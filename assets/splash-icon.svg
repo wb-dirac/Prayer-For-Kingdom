@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1242" height="2436" viewBox="0 0 1242 2436" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 紫色背景 -->
+  <rect width="1242" height="2436" fill="#6200EE"/>
+  
+  <!-- 居中的十字架 -->
+  <g transform="translate(421, 968)">
+    <path d="M200 -50V450M0 150H400" 
+          stroke="white" 
+          stroke-width="120" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </g>
+</svg> 

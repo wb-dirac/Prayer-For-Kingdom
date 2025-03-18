@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="512" cy="512" r="440" fill="#6200EE"/>
+  
+  <!-- 十字架 -->
+  <path d="M512 296V728M384 472H640" 
+        stroke="white" 
+        stroke-width="120" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg> 
