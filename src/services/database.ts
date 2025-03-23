@@ -114,6 +114,26 @@ export const getMonthlyPrayerStats = (): { month: string, totalMinutes: number }
   );
 };
 
+// 获取每日祷告统计数据
+export const getDailyPrayerStats = (): { date: string, minutes: number }[] => {
+  const prayers = getAllPrayers();
+  const dailyStats = new Map<string, number>();
+
+  prayers.forEach(prayer => {
+    const date = new Date(prayer.startTime);
+    const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const minutes = dailyStats.get(localDate) || 0;
+    dailyStats.set(localDate, minutes + ((prayer.duration || 0) / 60000));  // 转换为分钟
+  });
+
+  return Array.from(dailyStats.entries())
+    .map(([date, minutes]) => ({ 
+      date, 
+      minutes: Math.round(minutes) 
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+};
+
 // 导出数据
 export const exportData = (): Prayer[] => {
   return getAllPrayers();

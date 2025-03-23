@@ -19,6 +19,7 @@ const StatisticsScreen = () => {
   const [totalStats, setTotalStats] = useState<{ totalMinutes: number, prayerCount: number }>({ totalMinutes: 0, prayerCount: 0 });
   const [typeStats, setTypeStats] = useState<PrayerTypeStats[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
+  const [dailyStats, setDailyStats] = useState<{ date: string, minutes: number }[]>([]);
 
   // 加载统计数据
   useEffect(() => {
@@ -37,6 +38,10 @@ const StatisticsScreen = () => {
         // 获取按月分组的统计数据
         const monthlyStatsData = Database.getMonthlyPrayerStats();
         setMonthlyStats(monthlyStatsData);
+
+        // 获取每日统计数据
+        const dailyStatsData = Database.getDailyPrayerStats();
+        setDailyStats(dailyStatsData);
       } catch (error) {
         console.error('加载统计数据失败:', error);
       } finally {
@@ -48,8 +53,8 @@ const StatisticsScreen = () => {
   }, [prayers]);
 
   // 准备月度统计图表数据
-  const chartData = {
-    labels: monthlyStats.map(item => item.month.substring(5)), // 只显示月份
+  const monthlyChartData = {
+    labels: monthlyStats.map(item => item.month.substring(5)),
     datasets: [
       {
         data: monthlyStats.map(item => item.totalMinutes || 0),
@@ -57,14 +62,44 @@ const StatisticsScreen = () => {
     ],
   };
 
+  // 准备每日统计图表数据
+  const dailyChartData = {
+    labels: dailyStats.map(item => item.date.substring(8)),
+    datasets: [
+      {
+        data: dailyStats.map(item => item.minutes || 0),
+      },
+    ],
+  };
+
+  // 获取最大值来设置合适的Y轴范围
+  const maxDailyValue = Math.max(...dailyStats.map(item => item.minutes || 0));
+  const maxMonthlyValue = Math.max(...monthlyStats.map(item => item.totalMinutes || 0));
+
   // 图表配置
   const chartConfig = {
     backgroundGradientFrom: '#ffffff',
     backgroundGradientTo: '#ffffff',
     color: (opacity = 1) => `rgba(98, 0, 238, ${opacity})`,
     strokeWidth: 2,
-    barPercentage: 0.7,
+    barPercentage: 0.6,
     decimalPlaces: 0,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    fillShadowGradientFrom: '#6200ee',
+    fillShadowGradientTo: '#6200ee',
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientToOpacity: 0,
+    useShadowColorFromDataset: false,
+    barRadius: 4,
+    propsForBackgroundLines: {
+      strokeWidth: 1,
+      strokeDasharray: '6',
+      stroke: '#e0e0e0',
+    },
+    propsForLabels: {
+      fontSize: 12,
+      fontWeight: '400',
+    },
   };
 
   // 渲染类型统计卡片
@@ -120,20 +155,59 @@ const StatisticsScreen = () => {
         </View>
       </View>
 
+      {/* 每日统计图表 */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>每日祷告分钟数</Text>
+        {dailyStats.length > 0 ? (
+          <View style={styles.chartContainer}>
+            <BarChart
+              data={dailyChartData}
+              width={Dimensions.get('window').width - 48}
+              height={220}
+              chartConfig={chartConfig}
+              style={styles.chart}
+              fromZero
+              yAxisLabel=""
+              yAxisSuffix=""
+              showBarTops={false}
+              withInnerLines={true}
+              withHorizontalLabels={true}
+              withVerticalLabels={true}
+              segments={5}
+              yAxisInterval={1}
+              verticalLabelRotation={0}
+              horizontalLabelRotation={0}
+              showValuesOnTopOfBars={false}
+            />
+          </View>
+        ) : (
+          <Text style={styles.emptyText}>暂无数据</Text>
+        )}
+      </View>
+
       {/* 月度统计图表 */}
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>月度祷告分钟数</Text>
         {monthlyStats.length > 0 ? (
           <View style={styles.chartContainer}>
             <BarChart
-              data={chartData}
-              width={Dimensions.get('window').width - 32}
+              data={monthlyChartData}
+              width={Dimensions.get('window').width - 48}
               height={220}
               chartConfig={chartConfig}
               style={styles.chart}
               fromZero
               yAxisLabel=""
-              yAxisSuffix="分钟"
+              yAxisSuffix=""
+              showBarTops={false}
+              withInnerLines={true}
+              withHorizontalLabels={true}
+              withVerticalLabels={true}
+              segments={5}
+              yAxisInterval={1}
+              verticalLabelRotation={0}
+              horizontalLabelRotation={0}
+              showValuesOnTopOfBars={false}
             />
           </View>
         ) : (
@@ -240,7 +314,10 @@ const styles = StyleSheet.create({
   },
   chart: {
     borderRadius: 8,
-    paddingRight: 0,
+    paddingRight: 36,
+    paddingLeft: 24,
+    marginVertical: 8,
+    marginLeft: 16,
   },
   emptyText: {
     textAlign: 'center',
