@@ -57,6 +57,43 @@ const PrayerDetailScreen = () => {
     );
   };
 
+  // 格式化备注内容
+  const renderNotes = (notes: string) => {
+    if (!notes) return null;
+
+    // 分割普通备注和代祷事项
+    const parts = notes.split('\\n\\n代祷事项：\\n');
+    const generalNotes = parts[0].trim();
+    const prayerRequests = parts[1]?.split('\\n').filter(line => line.startsWith('- '));
+
+    return (
+      <View style={styles.notesCard}>
+        {generalNotes && (
+          <>
+            <Text style={styles.notesLabel}>备注</Text>
+            <Text style={styles.notesContent}>{generalNotes}</Text>
+          </>
+        )}
+        
+        {prayerRequests && prayerRequests.length > 0 && (
+          <View style={[styles.prayerRequestsSection, generalNotes && styles.prayerRequestsSectionWithNotes]}>
+            <Text style={styles.notesLabel}>代祷事项</Text>
+            <View style={styles.prayerRequestsList}>
+              {prayerRequests.map((request, index) => (
+                <View key={index} style={styles.prayerRequestItem}>
+                  <View style={styles.prayerRequestBullet} />
+                  <Text style={styles.prayerRequestText}>
+                    {request.substring(2)} {/* Remove "- " prefix */}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   if (!prayer) {
     return (
       <View style={styles.loadingContainer}>
@@ -99,13 +136,8 @@ const PrayerDetailScreen = () => {
             )}
           </View>
 
-          {/* 祷告备注 */}
-          {prayer.notes && (
-            <View style={styles.notesCard}>
-              <Text style={styles.notesLabel}>备注</Text>
-              <Text style={styles.notesContent}>{prayer.notes}</Text>
-            </View>
-          )}
+          {/* 备注和代祷事项 */}
+          {prayer.notes && renderNotes(prayer.notes)}
         </View>
       </ScrollView>
 
@@ -217,9 +249,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   notesContent: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+  },
+  prayerRequestsSection: {
+    marginTop: 0,
+  },
+  prayerRequestsSectionWithNotes: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  prayerRequestsList: {
+    marginTop: 8,
+  },
+  prayerRequestItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  prayerRequestBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#6200ee',
+    marginRight: 12,
+  },
+  prayerRequestText: {
+    flex: 1,
     fontSize: 16,
     color: '#333',
     lineHeight: 24,
