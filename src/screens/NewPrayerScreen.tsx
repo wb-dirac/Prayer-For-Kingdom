@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -8,7 +8,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  FlatList
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { usePrayer } from '../contexts/PrayerContext';
 import { PrayerType } from '../types';
+import { PrayerRequest } from '../types/PrayerRequest';
+import { getPrayerRequests } from '../services/prayerRequestService';
 
 type NewPrayerScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'NewPrayer'>;
 
@@ -27,6 +30,18 @@ const NewPrayerScreen = () => {
   const [type, setType] = useState<PrayerType>(PrayerType.DAILY);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
+  const [selectedRequestIds, setSelectedRequestIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    // 加载活跃的代祷事项
+    try {
+      const requests = getPrayerRequests('active');
+      setPrayerRequests(requests);
+    } catch (error) {
+      console.error('加载代祷事项失败:', error);
+    }
+  }, []);
 
   // 处理开始祷告
   const handleStartPrayer = async () => {
@@ -37,7 +52,16 @@ const NewPrayerScreen = () => {
 
     try {
       setIsSubmitting(true);
-      await startPrayer(title.trim(), type, notes.trim());
+      // 将选中的代祷事项ID和内容添加到备注中
+      let finalNotes = notes.trim();
+      if (selectedRequestIds.length > 0) {
+        const selectedRequests = prayerRequests.filter(req => selectedRequestIds.includes(req.id));
+        const requestsText = selectedRequests
+          .map(req => `- ${req.title}`)
+          .join('\\n');
+        finalNotes = `${finalNotes}\\n\\n代祷事项：\\n${requestsText}`;
+      }
+      await startPrayer(title.trim(), type, finalNotes);
       navigation.goBack();
     } catch (error) {
       Alert.alert('错误', '开始祷告失败，请重试');
@@ -45,6 +69,15 @@ const NewPrayerScreen = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // 处理代祷事项选择
+  const toggleRequestSelection = (requestId: number) => {
+    setSelectedRequestIds(prev => 
+      prev.includes(requestId)
+        ? prev.filter(id => id !== requestId)
+        : [...prev, requestId]
+    );
   };
 
   // 渲染祷告类型选择按钮
@@ -63,6 +96,27 @@ const NewPrayerScreen = () => {
         ]}
       >
         {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // 渲染代祷事项
+  const renderPrayerRequest = ({ item }: { item: PrayerRequest }) => (
+    <TouchableOpacity
+      style={[
+        styles.requestItem,
+        selectedRequestIds.includes(item.id) && styles.requestItemSelected
+      ]}
+      onPress={() => toggleRequestSelection(item.id)}
+    >
+      <View style={styles.requestHeader}>
+        <Text style={styles.requestTitle}>{item.title}</Text>
+        {selectedRequestIds.includes(item.id) && (
+          <Ionicons name="checkmark-circle" size={20} color="#6200ee" />
+        )}
+      </View>
+      <Text style={styles.requestDescription} numberOfLines={2}>
+        {item.description}
       </Text>
     </TouchableOpacity>
   );
@@ -99,6 +153,20 @@ const NewPrayerScreen = () => {
             </View>
           </View>
 
+          {/* 代祷事项 */}
+          {prayerRequests.length > 0 && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>选择代祷事项</Text>
+              <FlatList
+                data={prayerRequests}
+                renderItem={renderPrayerRequest}
+                keyExtractor={item => item.id.toString()}
+                scrollEnabled={false}
+                style={styles.requestsList}
+              />
+            </View>
+          )}
+
           {/* 备注 */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>备注（可选）</Text>
@@ -126,7 +194,10 @@ const NewPrayerScreen = () => {
           <Text style={styles.cancelButtonText}>取消</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.startButton}
+          style={[
+            styles.startButton,
+            (!title.trim() || isSubmitting) && styles.startButtonDisabled
+          ]}
           onPress={handleStartPrayer}
           disabled={isSubmitting || !title.trim()}
         >
@@ -195,6 +266,37 @@ const styles = StyleSheet.create({
   typeButtonTextActive: {
     color: 'white',
   },
+  requestsList: {
+    marginTop: 8,
+  },
+  requestItem: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  requestItemSelected: {
+    borderColor: '#6200ee',
+    backgroundColor: '#f3e5f5',
+  },
+  requestHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  requestTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    flex: 1,
+  },
+  requestDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
   footer: {
     flexDirection: 'row',
     padding: 16,
@@ -225,6 +327,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  startButtonDisabled: {
+    backgroundColor: '#e0e0e0',
   },
   startButtonText: {
     color: 'white',

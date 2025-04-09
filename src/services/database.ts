@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import { PrayerType, Prayer } from '../types';
+import { PrayerRequest } from '../types/PrayerRequest';
 
 // 打开数据库连接
 const db = SQLite.openDatabaseSync('prayers.db');
@@ -15,6 +16,20 @@ export const initDatabase = (): void => {
       endTime INTEGER,
       duration INTEGER,
       notes TEXT
+    )
+  `);
+
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS prayer_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      request_date TEXT NOT NULL,
+      status TEXT NOT NULL,
+      answered_date TEXT,
+      answer_notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     )
   `);
 };
@@ -135,19 +150,23 @@ export const getDailyPrayerStats = (): { date: string, minutes: number }[] => {
 };
 
 // 导出数据
-export const exportData = (): Prayer[] => {
-  return getAllPrayers();
+export const exportData = (): { prayers: Prayer[], prayerRequests: PrayerRequest[] } => {
+  return {
+    prayers: getAllPrayers(),
+    prayerRequests: db.getAllSync<PrayerRequest>('SELECT * FROM prayer_requests')
+  };
 };
 
 // 导入数据
-export const importData = (prayers: Prayer[]): void => {
+export const importData = (data: { prayers: Prayer[], prayerRequests: PrayerRequest[] }): void => {
   // 使用事务确保数据完整性
   db.withTransactionSync(() => {
     // 清空现有数据
     db.runSync('DELETE FROM prayers');
+    db.runSync('DELETE FROM prayer_requests');
     
-    // 批量插入新数据
-    for (const prayer of prayers) {
+    // 批量插入祷告数据
+    for (const prayer of data.prayers) {
       db.runSync(
         `INSERT INTO prayers (id, title, type, startTime, endTime, duration, notes) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -159,6 +178,27 @@ export const importData = (prayers: Prayer[]): void => {
           prayer.endTime || null,
           prayer.duration || null,
           prayer.notes || ''
+        ]
+      );
+    }
+
+    // 批量插入代祷事项数据
+    for (const request of data.prayerRequests) {
+      db.runSync(
+        `INSERT INTO prayer_requests (
+          id, title, description, request_date, status,
+          answered_date, answer_notes, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          request.id,
+          request.title,
+          request.description,
+          request.requestDate.toISOString(),
+          request.status,
+          request.answeredDate?.toISOString() || null,
+          request.answerNotes || null,
+          request.createdAt.toISOString(),
+          request.updatedAt.toISOString()
         ]
       );
     }

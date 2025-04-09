@@ -11,6 +11,7 @@ import StatisticsScreen from '../screens/StatisticsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import PrayerDetailScreen from '../screens/PrayerDetailScreen';
 import NewPrayerScreen from '../screens/NewPrayerScreen';
+import { PrayerRequestsScreen } from '../screens/PrayerRequestsScreen';
 
 // 定义导航参数类型
 export type RootStackParamList = {
@@ -22,6 +23,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   History: undefined;
+  PrayerRequests: undefined;
   Statistics: undefined;
   Settings: undefined;
 };
@@ -42,6 +44,8 @@ const MainTabNavigator = () => {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'History') {
             iconName = focused ? 'list' : 'list-outline';
+          } else if (route.name === 'PrayerRequests') {
+            iconName = focused ? 'heart' : 'heart-outline';
           } else if (route.name === 'Statistics') {
             iconName = focused ? 'stats-chart' : 'stats-chart-outline';
           } else if (route.name === 'Settings') {
@@ -64,6 +68,11 @@ const MainTabNavigator = () => {
         name="History" 
         component={HistoryScreen} 
         options={{ title: '历史' }}
+      />
+      <Tab.Screen 
+        name="PrayerRequests" 
+        component={PrayerRequestsScreen} 
+        options={{ title: '代祷事项' }}
       />
       <Tab.Screen 
         name="Statistics" 
