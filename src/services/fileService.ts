@@ -2,23 +2,24 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { ExportData, Prayer } from '../types';
-import { getAllPrayers, importData } from './database';
+import { exportData, importData } from './database';
 
 // 导出数据到文件
 export const exportDataToFile = async (): Promise<void> => {
   try {
     // 获取所有祷告记录
-    const prayers = getAllPrayers();
+    const { prayers, prayerRequests } = exportData();
     
     // 创建导出数据对象
-    const exportData: ExportData = {
+    const data: ExportData = {
       prayers,
-      version: '1.0',
+      prayerRequests,
+      version: '1.1',
       exportDate: Date.now()
     };
     
     // 将数据转换为JSON字符串
-    const jsonData = JSON.stringify(exportData, null, 2);
+    const jsonData = JSON.stringify(data, null, 2);
     
     // 创建临时文件
     const fileUri = `${FileSystem.documentDirectory}prayer_data_${Date.now()}.json`;
@@ -66,7 +67,7 @@ export const importDataFromFile = async (): Promise<void> => {
     }
     
     // 导入数据到数据库
-    importData(importedData.prayers);
+    importData({ prayers: importedData.prayers, prayerRequests: importedData.prayerRequests ?? [] });
     
   } catch (error) {
     console.error('导入数据失败:', error);

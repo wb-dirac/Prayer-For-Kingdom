@@ -97,7 +97,7 @@ const StatisticsScreen = () => {
       stroke: '#e0e0e0',
     },
     propsForLabels: {
-      fontSize: 12,
+      fontSize: 10,
       fontWeight: '400',
     },
   };
@@ -160,25 +160,67 @@ const StatisticsScreen = () => {
         <Text style={styles.sectionTitle}>每日祷告分钟数</Text>
         {dailyStats.length > 0 ? (
           <View style={styles.chartContainer}>
-            <BarChart
-              data={dailyChartData}
-              width={Dimensions.get('window').width - 48}
-              height={220}
-              chartConfig={chartConfig}
-              style={styles.chart}
-              fromZero
-              yAxisLabel=""
-              yAxisSuffix=""
-              showBarTops={false}
-              withInnerLines={true}
-              withHorizontalLabels={true}
-              withVerticalLabels={true}
-              segments={5}
-              yAxisInterval={1}
-              verticalLabelRotation={0}
-              horizontalLabelRotation={0}
-              showValuesOnTopOfBars={false}
-            />
+            <View style={styles.chartWithYAxis}>
+              {/* 固定的Y轴标签 */}
+              <View style={styles.yAxisContainer}>
+                {Array.from({ length: 6 }).map((_, index) => {
+                  const maxValue = Math.max(...dailyStats.map(item => item.minutes || 0));
+                  const value = Math.round(maxValue * (5 - index) / 5);
+                  return (
+                    <Text key={index} style={styles.yAxisLabel}>
+                      {value}
+                    </Text>
+                  );
+                })}
+              </View>
+              
+              {/* 可滚动的图表内容 */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={true}
+                contentContainerStyle={styles.horizontalScrollContent}
+                ref={scrollViewRef => {
+                  // 在组件加载完成后滚动到最右端
+                  if (scrollViewRef && dailyStats.length > 0) {
+                    setTimeout(() => {
+                      scrollViewRef.scrollToEnd({ animated: false });
+                    }, 100);
+                  }
+                }}
+              >
+                <BarChart
+                  data={{
+                    labels: dailyStats.map(item => item.date.substring(8)),
+                    datasets: [{
+                      data: dailyStats.map(item => item.minutes || 0),
+                    }],
+                  }}
+                  width={Math.max(Dimensions.get('window').width - 80, dailyStats.length * 25)}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    barPercentage: 0.4,
+                    propsForLabels: {
+                      ...chartConfig.propsForLabels,
+                      fontSize: 10,
+                    }
+                  }}
+                  style={styles.chart}
+                  fromZero
+                  yAxisLabel=""
+                  yAxisSuffix=""
+                  showBarTops={false}
+                  withInnerLines={true}
+                  withHorizontalLabels={false}
+                  withVerticalLabels={true}
+                  segments={5}
+                  yAxisInterval={1}
+                  verticalLabelRotation={-45}
+                  horizontalLabelRotation={0}
+                  showValuesOnTopOfBars={false}
+                />
+              </ScrollView>
+            </View>
           </View>
         ) : (
           <Text style={styles.emptyText}>暂无数据</Text>
@@ -190,25 +232,69 @@ const StatisticsScreen = () => {
         <Text style={styles.sectionTitle}>月度祷告分钟数</Text>
         {monthlyStats.length > 0 ? (
           <View style={styles.chartContainer}>
-            <BarChart
-              data={monthlyChartData}
-              width={Dimensions.get('window').width - 48}
-              height={220}
-              chartConfig={chartConfig}
-              style={styles.chart}
-              fromZero
-              yAxisLabel=""
-              yAxisSuffix=""
-              showBarTops={false}
-              withInnerLines={true}
-              withHorizontalLabels={true}
-              withVerticalLabels={true}
-              segments={5}
-              yAxisInterval={1}
-              verticalLabelRotation={0}
-              horizontalLabelRotation={0}
-              showValuesOnTopOfBars={false}
-            />
+            <View style={styles.chartWithYAxis}>
+              {/* 固定的Y轴标签 */}
+              <View style={styles.yAxisContainer}>
+                {Array.from({ length: 6 }).map((_, index) => {
+                  const maxValue = Math.max(...monthlyStats.map(item => item.totalMinutes || 0));
+                  const value = Math.round(maxValue * (5 - index) / 5);
+                  return (
+                    <Text key={index} style={styles.yAxisLabel}>
+                      {value}
+                    </Text>
+                  );
+                })}
+              </View>
+              
+              {/* 可滚动的图表内容 */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={true}
+                contentContainerStyle={styles.horizontalScrollContent}
+                ref={scrollViewRef => {
+                  if (scrollViewRef && monthlyStats.length > 0) {
+                    setTimeout(() => {
+                      scrollViewRef.scrollToEnd({ animated: false });
+                    }, 100);
+                  }
+                }}
+              >
+                <BarChart
+                  data={{
+                    labels: monthlyStats.map(item => item.month.substring(5)),
+                    datasets: [{
+                      data: monthlyStats.map(item => item.totalMinutes || 0),
+                    }],
+                  }}
+                  width={Math.max(
+                    Dimensions.get('window').width - 80,
+                    Math.max(monthlyStats.length * 30, 200)
+                  )}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    barPercentage: 0.7,
+                    propsForLabels: {
+                      ...chartConfig.propsForLabels,
+                      fontSize: 10
+                    }
+                  }}
+                  style={styles.chart}
+                  fromZero
+                  yAxisLabel=""
+                  yAxisSuffix=""
+                  showBarTops={false}
+                  withInnerLines={true}
+                  withHorizontalLabels={false}
+                  withVerticalLabels={true}
+                  segments={5}
+                  yAxisInterval={1}
+                  verticalLabelRotation={-45}
+                  horizontalLabelRotation={0}
+                  showValuesOnTopOfBars={false}
+                />
+              </ScrollView>
+            </View>
           </View>
         ) : (
           <Text style={styles.emptyText}>暂无数据</Text>
@@ -227,6 +313,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  horizontalScrollContent: {
+    paddingRight: 16,
+  },
+  chartWithYAxis: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  yAxisContainer: {
+    width: 30,
+    height: 220,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingRight: 4,
+    paddingVertical: 10,
+  },
+  yAxisLabel: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'right',
   },
   totalStatsContainer: {
     flexDirection: 'row',
@@ -326,4 +433,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StatisticsScreen; 
+export default StatisticsScreen;

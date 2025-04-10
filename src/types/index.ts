@@ -1,3 +1,4 @@
+import { PrayerRequest } from './PrayerRequest';
 // 祷告类型枚举
 export enum PrayerType {
   DAILY = '日常祷告',
@@ -20,6 +21,7 @@ export interface Prayer {
 // 导出/导入数据格式
 export interface ExportData {
   prayers: Prayer[];
+  prayerRequests: PrayerRequest[];
   version: string;
   exportDate: number;
 }
