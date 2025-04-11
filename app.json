@@ -13,7 +13,8 @@
       "backgroundColor": "#6200EE"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.prayerforkingdom.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.prayerforkingdom.app",
-      "versionCode": 1,
+      "versionCode": 3,
       "permissions": [
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
@@ -34,6 +35,9 @@
       "eas": {
         "projectId": "744481c1-9842-4e60-9ff6-7f0381e76feb"
       }
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }
