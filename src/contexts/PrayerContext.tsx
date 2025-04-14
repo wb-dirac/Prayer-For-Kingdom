@@ -16,6 +16,8 @@ interface PrayerContextType {
   refreshPrayers: () => Promise<void>;
   exportData: () => Promise<void>;
   importData: () => Promise<void>;
+  addPrayer: (prayer: Omit<Prayer, 'id'>) => Promise<number>;
+  updatePrayer: (prayer: Prayer) => Promise<void>;
 }
 
 // 创建上下文
@@ -174,6 +176,19 @@ export const PrayerProvider: React.FC<PrayerProviderProps> = ({ children }) => {
     }
   };
 
+  // 添加祷告
+  const addPrayer = async (prayer: Omit<Prayer, 'id'>): Promise<number> => {
+    const id = Database.addPrayer(prayer);
+    await refreshPrayers();
+    return id;
+  };
+
+  // 更新祷告
+  const updatePrayer = async (prayer: Prayer): Promise<void> => {
+    Database.updatePrayer(prayer);
+    await refreshPrayers();
+  };
+
   // 上下文值
   const contextValue: PrayerContextType = {
     prayers,
@@ -185,7 +200,9 @@ export const PrayerProvider: React.FC<PrayerProviderProps> = ({ children }) => {
     deletePrayer,
     refreshPrayers,
     exportData,
-    importData
+    importData,
+    addPrayer,
+    updatePrayer
   };
 
   return (

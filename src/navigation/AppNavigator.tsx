@@ -12,12 +12,15 @@ import SettingsScreen from '../screens/SettingsScreen';
 import PrayerDetailScreen from '../screens/PrayerDetailScreen';
 import NewPrayerScreen from '../screens/NewPrayerScreen';
 import { PrayerRequestsScreen } from '../screens/PrayerRequestsScreen';
+import EditPrayerScreen from '../screens/EditPrayerScreen';
+import { Prayer } from '../types';
 
 // 定义导航参数类型
 export type RootStackParamList = {
   Main: undefined;
-  PrayerDetail: { prayerId: number };
   NewPrayer: undefined;
+  PrayerDetail: { prayerId: number };
+  EditPrayer: { prayer: Prayer };
 };
 
 export type MainTabParamList = {
@@ -92,21 +95,36 @@ const MainTabNavigator = () => {
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen 
-          name="Main" 
-          component={MainTabNavigator} 
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#6200ee',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      >
+        <Stack.Screen
+          name="Main"
+          component={MainTabNavigator}
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="PrayerDetail" 
-          component={PrayerDetailScreen} 
+        <Stack.Screen
+          name="PrayerDetail"
+          component={PrayerDetailScreen}
           options={{ title: '祷告详情' }}
         />
-        <Stack.Screen 
-          name="NewPrayer" 
-          component={NewPrayerScreen} 
+        <Stack.Screen
+          name="NewPrayer"
+          component={NewPrayerScreen}
           options={{ title: '新建祷告' }}
+        />
+        <Stack.Screen
+          name="EditPrayer"
+          component={EditPrayerScreen}
+          options={{ title: '编辑祷告' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

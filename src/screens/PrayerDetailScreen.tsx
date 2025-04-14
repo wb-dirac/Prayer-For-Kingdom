@@ -57,6 +57,13 @@ const PrayerDetailScreen = () => {
     );
   };
 
+  // 处理编辑祷告
+  const handleEditPrayer = () => {
+    if (prayer) {
+      navigation.navigate('EditPrayer', { prayer });
+    }
+  };
+
   // 格式化备注内容
   const renderNotes = (notes: string) => {
     if (!notes) return null;
@@ -143,13 +150,23 @@ const PrayerDetailScreen = () => {
 
       {/* 底部操作按钮 */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={handleDeletePrayer}
-        >
-          <Ionicons name="trash-outline" size={20} color="#ff5252" />
-          <Text style={styles.deleteButtonText}>删除祷告</Text>
-        </TouchableOpacity>
+        <View style={styles.footerButtons}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={handleEditPrayer}
+          >
+            <Ionicons name="pencil-outline" size={20} color="#6200ee" />
+            <Text style={styles.editButtonText}>编辑祷告</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeletePrayer}
+          >
+            <Ionicons name="trash-outline" size={20} color="#ff5252" />
+            <Text style={styles.deleteButtonText}>删除祷告</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -292,7 +309,29 @@ const styles = StyleSheet.create({
     borderTopColor: '#e0e0e0',
     backgroundColor: 'white',
   },
+  footerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#6200ee',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  editButtonText: {
+    color: '#6200ee',
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
   deleteButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
